@@ -1,0 +1,39 @@
+
+name: Build Beef Bonus Mod
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/main.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          unzip -o BeefBonus_Fabric_1.21.11_Source.zip -d project
+          find project -name gradlew -type f -exec chmod +x {} \;
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build mod
+        run: |
+          cd project
+          DIR=$(find . -name settings.gradle -o -name settings.gradle.kts | head -n 1)
+          if [ -n "$DIR" ]; then cd "$(dirname "$DIR")"; fi
+          gradle build
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Beef-Bonus-JAR
+          path: project/**/*.jar
